@@ -7,7 +7,7 @@ export default function Authentication() {
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 mt-16">
         <div className="flex flex-1 flex-col justify-center">
           <AuthForm />
         </div>
