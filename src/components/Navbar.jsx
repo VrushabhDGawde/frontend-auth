@@ -1,8 +1,39 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { isTokenValid } from "../utils/auth";
+import authService from "../services/authService";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  // Check login status on mount and when localStorage changes
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("accessToken");
+      setLoggedIn(isTokenValid(token));
+    };
+
+    checkAuth();
+
+    // Listen for login/logout events from other tabs/windows
+    window.addEventListener("storage", checkAuth);
+
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await authService.logout();
+      alert(response.data.message);
+      localStorage.removeItem("accessToken");
+      setLoggedIn(false);
+      navigate("/authentication");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <nav className="fixed w-full z-50">
@@ -13,7 +44,7 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/">
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-cpu" viewBox="0 0 16 16">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="bi bi-cpu" viewBox="0 0 16 16">
                   <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0m-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z" />
                 </svg>
               </Link>
@@ -44,13 +75,22 @@ export default function Navbar() {
 
             {/* Right buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              
-              <Link
-                to="/authentication"
-                className="px-4 py-2 bg-indigo-600 text-white font-medium rounded hover:bg-indigo-700"
-              >
-                Register
-              </Link>
+
+              {!loggedIn ? (
+                <Link
+                  to="/authentication"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                >
+                  Register
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -109,18 +149,22 @@ export default function Navbar() {
               >
                 Contact
               </a>
-              <Link
-                to="/login"
-                className="block px-3 py-2 rounded text-gray-900 hover:bg-gray-100"
-              >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="block px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-center"
-              >
-                Signup
-              </Link>
+
+              {!loggedIn ? (
+                <Link
+                  to="/authentication"
+                  className="block px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-center"
+                >
+                  Register
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="block px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-center"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         )}

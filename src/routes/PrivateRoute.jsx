@@ -1,17 +1,12 @@
-import { Navigate, Outlet } from "react-router-dom";
-import jwtDecode from "jwt-decode";
+import { Navigate } from "react-router-dom";
+import { isTokenValid } from "../utils/auth";
 
-function isTokenValid(token) {
-  if (!token) return false;
-  try {
-    const { exp } = jwtDecode(token);
-    return exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-}
-
-export default function PrivateRoute() {
+export default function PrivateRoute({ children }) {
   const token = localStorage.getItem("accessToken");
-  return isTokenValid(token) ? <Outlet /> : <Navigate to="/authentication" replace />;
+
+  if (!isTokenValid(token)) {
+    return <Navigate to="/authentication" replace />;
+  }
+
+  return children;
 }

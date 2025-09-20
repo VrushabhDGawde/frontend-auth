@@ -1,6 +1,6 @@
 import { useState } from "react";
 import authService from "../../services/authService";
-
+import { useNavigate } from "react-router-dom";
 
 export default function AuthForm() {
   const [mode, setMode] = useState("signup"); // signup | login
@@ -13,7 +13,7 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  const navigate = useNavigate(); // <-- create navigate instance
   // Handle form field changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,6 +48,7 @@ export default function AuthForm() {
         // Save access token in localStorage (industry practice)
         localStorage.setItem("accessToken", response.data.accessToken);
         setSuccess("Login successful!");
+        navigate("/form"); 
       }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
